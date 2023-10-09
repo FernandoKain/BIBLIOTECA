@@ -1,0 +1,598 @@
+----Esses dois comandos serão usados sempre que o Visual Studio for fechado e aberto novamente para continuar o desenvolvimento-----
+---------------------------------------------------------------------------------------------------
+Ativar o ambiente virtual com "source venv/Scripts/activate" --- Sempre ativar quando voltar para o ambiente de desenvolvimento
+Iniciar o projeto / rodar o servidor com "python manage.py runserver" --- Sempre ativar quando voltar para o ambiente de desenvolvimento, pois é o servidor.
+--------------------------------------------------------------------------------------------------
+
+--- Aqui começa o desenvolvimento ---
+Habilitar o ambiente virtual com "python -m venv venv"
+Ativar o ambiente virtual com "source venv/Scripts/activate" --- Sempre ativar quando voltar para o ambiente de desenvolvimento
+Criar o arquivo requirements.txt com "pip freeze > requirements.txt"
+Instalar a biblioteca para manipulação de imagens  com "pip install django pillow"
+Criar o projeto com "django-admin startproject biblioteca ." (Com o ponto, para que os nomes das pastas não fiquem redundantes)
+Iniciar o projeto / rodar o servidor com "python manage.py runserver" --- Sempre ativar quando voltar para o ambiente de desenvolvimento, pois é o servidor.
+Acessar o arquivo settings.py e mudar o "LANGUAGE_CODE" para 'pt-BR'
+Acessar o arquivo settings.py e mudar o "TIME_ZONE" para 'America-Sao_Paulo'
+
+Iniciar uma aplicação no terminal com "python manage.py startapp livro"
+
+1 - No arquivo urls.py adicionar o "include" na importação e adicionar o path para a classe livro.
+Obs.: Não esquecer de adicionar a linha de importação 'from django.urls import path, include' para a aplicação funcionar
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('livro/', include('livro.urls'))
+]
+
+2 - Criar o arquivo urls.py dentro da pasta livro
+
+3 - No arquivo livro/urls.py importar a model, a view e o template
+Obs.: model (modela e armazena os dados), view (manipula os dados, a lógica), template (a interface)
+
+from django. urls import path
+from . import views
+
+4 - No arquivo livro/urls.py começar a construir os padrões de caminhos
+
+from django. urls import path
+from . import views
+
+urlpatterns = [
+    path('cadastrar/', views.cadastrar)
+]
+
+5 - Agora é necessário ir até o arquivo livro/views.py e criar a função 'cadastrar', caso contrário a aplicação não funcionará
+Obs.: Não esquecer de adicionar a linha de importação 'from django.http import HttpResponse' para que a função funcione
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+
+def cadastrar(request):
+    return HttpResponse('Olá')
+
+
+6 - É necessário acessar o arquivo biblioteca/settings.py e começar a adicionar todas os apps que forem sendo criados. Nunca esquecer disso. No exemplo abaixo, foi adicionada o app 'livro'
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'livro'
+]
+
+7 - Vamos agora para as models (banco de dados) em livro/models e vamos criar nossas primeiras classes
+
+from django.db import models
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30)
+    data_cadastro = models.DateField()
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30)
+    data_emprestimo = models.DateTimeField()
+    data_devolucao = models.DateTimeField()
+    tempo_duracao = models.DateField()
+
+
+8 - Logo após, realizar a primeira migration no terminal
+Obs.: executar o comando "python manage.py makemigrations"
+
+9 - Logo após, realizar o primeiro migrate no terminal. Este comando vai verificar entro do arquivo biblioteca/settings.py no campo "INSTALLED_APPS" se todas as tabelas de cada um dos apps foram criadas. É nessa hora que ele vai encontrar o app "livro" lá. Então ele vai até a pasta livro/migrations e vai procurar um arquivo de migração que foi criado e verificar se ele já fez ou não essa tabela em questão, no caso será o primeiro arquivo de migrations criado para 'livro', o arquivo "0001_initial.py" e vai criar a tabela.
+
+Obs.: executar o comando "python manage.py migrate"
+
+
+10 - Criar um usuário para o admin no terminal
+Obs.: executar o comando "python manage.py createsuperuser"
+Usuário: mangus
+Senha: 123
+
+Obs.: criei dois superusers
+Usuário: admin
+Senha: 123
+
+
+11 - Acessar o arquivo livro/admin.py e finalmente vamos registrar / subir na área adminstrativa a tabela / classe Livros
+
+
+12 - Voltar ao arquivo livro/models.py e fazer a seguinte linha de comando :
+Obs: Isso se faz necessário pois no ambiente o nome da classe ficaria "Livross", provavelmente por causa de alguma configuração automática. Então é provável que não deveríamos nomear a classe como "Livros", pois o acréscimo do 's' é feito automaticamente no ambiente.
+
+    class Meta:
+        verbose_name = 'Livro'
+
+
+13 - O arquivo models.py ficará assim:
+from django.db import models
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30)
+    data_cadastro = models.DateField()
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30)
+    data_emprestimo = models.DateTimeField()
+    data_devolucao = models.DateTimeField()
+    tempo_duracao = models.DateField()
+
+    class Meta:
+        verbose_name = 'Livro'
+
+
+14 - Agora nota-se um problema que precisa ser corrigido: todos os campos da classe Livros estão como preenchimento obrigatórios e isso não é bom. Somente alguns campos devem ser obrigatoriamente preenchidos. Então vamos ficar com o arquivo livro/models.py da seguinte maneira:
+
+from django.db import models
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30, blank=True)
+    data_cadastro = models.DateField()
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30, blank=True)
+    data_emprestimo = models.DateTimeField(blank=True)
+    data_devolucao = models.DateTimeField(blank=True)
+    tempo_duracao = models.DateField(blank=True)
+
+    class Meta:
+        verbose_name = 'Livro'
+
+
+
+15 - Como houve modificação na classe "Livros", é necessário realizarmos novamente o migrations.
+Obs.: execute novamente o comando "python manage.py makemigrations". 
+Assim o arquivo "0002_alter_livros_options_alter_livros_co_autor_and_more.py" será criado. E esse arquivo agora tem dependência do arquivo "0001_initial.py", pois para fazer a modificação algo já precisa estar criado.
+
+16 - Por fim agora, precisamos utilizar o comando final para migrar
+Obs.: execute o comando "python manage.py migrate"
+
+17 - Agora, para treinar, vamos definir o campo data_cadastro da classe "Livros" como "automático". Acesse o arquivo livro/models.py e altere a seguinte linha de comando acrescentando a propriedade "auto_now=True":
+Obs.: a linha de comando ficará assim: "data_cadastro = models.DateField(auto_now=True)"
+
+18 - Como foi alterado um campo da classe "Livros" é necessário NOVAMENTE fazer os passos 15 e 16.
+Obs.: ou seja, rode novamente os comandos "python manage.py makemigrations" (o arquivo "0003_alter_livros_data_cadastro.py" será criado e terá dependência do arquivo '0002_alter_livros_options_alter_livros_co_autor_and_more') e "python manage.py migrate"
+
+19 - O passo 17 não deu muito certo. Portanto acesse o arquivo livro/models.py e altere a seguinte linha de comando acrescentando a propriedade "default = date.today":
+Obs.: a linha de comando ficará assim: "data_cadastro = models.DateField(default = date.today)"
+Obs.: é preciso IMPORTAR agora com a seguinte linha de comando "from datetime importe date" para poder funcionar o passo anterior. O arquivo livro/models.py ficará da seguinte maneira:
+
+from django.db import models
+from datetime import date
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30, blank=True)
+    data_cadastro = models.DateField(default=date.today)
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30, blank=True)
+    data_emprestimo = models.DateTimeField(blank=True)
+    data_devolucao = models.DateTimeField(blank=True)
+    tempo_duracao = models.DateField(blank=True)
+
+    class Meta:
+        verbose_name = 'Livro'
+
+
+20 - Agora sim, é necessário novamente rodar os passos 15 e 16 novamente. E aí, nessa altura, você já sabe que o arquivo "0004" será criado automaticamente.
+Obs.: ou seja, rode novamente os comandos "python manage.py makemigrations" e "python manage.py migrate"
+
+21 - Alguns campos precisaram ser modificados para que recebessem o valor null. As datas não estavam permitindo a introdução de um registro com o campo nulo. Portanto, foi necessário voltar ao arquivo livro/models.py e realizar a seguinte alteração (introdução do atributo"null=True") que deixou o arquivo assim:
+
+from django.db import models
+from datetime import date
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30, blank=True)
+    data_cadastro = models.DateField(default=date.today)
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30, blank=True, null=True)
+    data_emprestimo = models.DateTimeField(blank=True, null=True)
+    data_devolucao = models.DateTimeField(blank=True, null=True)
+    tempo_duracao = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Livro'
+
+22 - Agora sim, é necessário novamente rodar os passos 15 e 16 novamente. E aí, nessa altura, você já sabe que o arquivo "0005" será criado automaticamente.
+Obs.: ou seja, rode novamente os comandos "python manage.py makemigrations" e "python manage.py migrate"
+
+
+23 - Agora para que os nomes dos livros inseridos na área administrativa apareçam corretamente é necessário editarmos novamente o arquivo livro/models e inserir a função:     
+    def __str__(self) -> str:
+        return self.nome
+
+
+24 - O arquivo livro/models agora ficará da seguinte maneira: 
+
+from django.db import models
+from datetime import date
+
+# Create your models here.
+class Livros(models.Model):
+    nome = models.CharField(max_length=100)
+    autor = models.CharField(max_length=30)
+    co_autor = models.CharField(max_length=30, blank=True)
+    data_cadastro = models.DateField(default=date.today)
+    emprestado = models.BooleanField(default=False)
+    nome_emprestado = models.CharField(max_length=30, blank=True, null=True)
+    data_emprestimo = models.DateTimeField(blank=True, null=True)
+    data_devolucao = models.DateTimeField(blank=True, null=True)
+    tempo_duracao = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Livro'
+    
+    def __str__(self) -> str:
+        return self.nome
+
+
+
+25 - Criar o app usuários com o seguinte comando no terminal: 'python manage.py startapp usuarios'
+
+
+26 - Primeira coisa depois de criar um app temos que acessar biblioteca/settings.py e incluir o app em questão, no caso ficaria da seguinte maneira:
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'livro',
+    'usuarios'
+]
+
+27 -  Logo após precisamos definir uma URL acessando o arquivo biblioteca/urls.py e incluir a url desejada como no caso abaixo:
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('livro/', include('livro.urls'))
+    path('auth/', include('usuarios.urls'))
+]
+
+28 - Agora é necessário criar em usuarios e criar o arquivo usuarios/urls.py a url em questão que vai ficar da seguinte maneira:
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('login/', views.login, name='login'),
+    path('cadastro/', views.cadastro, name='cadastro')
+]
+
+29 - Agora vamos até o arquivo views usuarios/views e inserimos as views correspondentes que são as funções que vão requerer os dados de login ou de cadastro de login
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+def login(request):
+    return HttpResponse('login')
+
+def cadastro(request):
+    return HttpResponse('cadastro')
+
+
+30 - Criar a pasta usuarios/templates e criar o arquivo cadastro.html dentro dela. Editar esse arquivo para receber somente uma tag <h1>CADASTRO</h1>
+
+
+31 - Voltar para o arquivo usuarios/views e referenciar corretamente o cadastro.html conforme abaixo:
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+def login(request):
+    return HttpResponse('login')
+
+def cadastro(request):
+    return render(request, 'cadastro.html')
+
+----------------------2ª aula ------------------------------------------------------------------
+Agora, pensando nas referências html que deveremos fazer, melhor construírmos os templates somente um um local. Para isso vamos fazer o seguinte:
+
+32. Criar a pasta BIBLIOTECA/templates na pasta raiz. Logo após criar o arquivo base.html e colocar dentro desta pasta.
+
+33. Vamos até o site do Bootstrap e vamos copiar uma referência para o nosso arquivo base.html. A escolhida foi a versão 4.6 como o exemplo abaixo:
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <h1>Hello, world!</h1>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
+
+
+
+34. Logo após, vamos limpar melhor esse arquivo base.html e vai ficar da seguinte maneira:
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <h1>Hello, world!</h1>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>
+
+
+35. Em seguida vamos editar um pouco esse html e criar alguns BLOCOS para receber alguns códigos de outras páginas. Vamos começar pelo título do HTML:
+
+    <title>{% block 'titulo' %} {% endblock %} </title>
+
+36. Também colocaremos blocos dentro da tag <head></head> e da tab <body></body>. O código, portanto, ficará assim (não esquecer de mudar o nome do bloco para head e para body como abaixo demonstrado):
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    {% block 'head' %} {% endblock %}
+    <title>{% block 'titulo' %} {% endblock %}</title>
+  </head>
+  <body>
+    {% block 'body' %} {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>
+
+37. Mudar a tag de congiguração de linguagem desse arquivo base.html. Vai ficar assim:
+
+<html lang="pt-BR">
+
+
+38. Agora vamos editar o arquivo usuarios/templates/cadastro.html que vai ficar da seguinte maneira ao invés de <h1>CADASTRO</h1> agora passa a ser:
+
+{% extends 'base.html' %}
+
+39. Agora editamos o arquivo biblioteca/settings.py para receber o caminho do arquivo base.html. Primeiro o cabeçalho que passa a ser:
+
+from pathlib import Path
+import os
+
+40. Depois editamos o seguinte bloco do mesmo arquivo para ficar da seguinte maneira:
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+
+41. Essa foi a linha editada: 'DIRS': [os.path.join(BASE_DIR, 'templates')], e dessa maneira, vai fazer com quem em diversos sistemas utilizemos um método de referenciação inteligente, não importando o sistema operacional que utilizemos.
+
+42. Agora vamos para a Navbar do nosso base.html. Voltemos ao Bootstrap e vamos copiar uma navbar bem simples (também da versão 4.6). Vai ficar da seguinte maneira:
+
+  <body>
+    <nav class="navbar navbar-light bg-light">
+      <a class="navbar-brand" href="#">Biblioteca do Manga</a>
+    </nav>
+    {% block 'body' %} {% endblock %}
+
+
+43. Mas vamos mudar pelo menos a cor da navbar que vai ficar assim:
+
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">Biblioteca do Manga</a>
+    </nav>
+    {% block 'body' %} {% endblock %}
+
+44. Agora podemos voltar para o nosso arquivo usuarios/templates/cadastro.html . O acréscimo do código abaixo vai mudar o nome da aba do nosso site. Deixando de ser o número de ip para receber o nome de "Cadastro"
+
+{% extends 'base.html' %}
+
+{% block 'titulo' %} Cadastro {% endblock %}
+
+55. E agora já vamos deixar referenciado o bloco de conteúdo para nossa página deixando o arquivo usuarios/templates/cadastro.html dessa maneira:
+
+{% extends 'base.html' %}
+
+{% block 'titulo' %} Cadastro {% endblock %}
+
+{% block 'conteudo' %} 
+
+
+{% endblock %}
+
+
+56. Ok, agora vamos começar a colocar a mão na massa e editar o nome HTML com base nas pré-configurações do Bootstrap. Vamos adicionar nossas divs do nosso arquivo usuarios/templates/cadastro.html e fazer uma boa página de cadastro já com formulário.
+
+{% extends 'base.html' %}
+
+{% block 'titulo' %} Cadastro {% endblock %}
+
+{% block 'conteudo' %} 
+
+<div class="container">
+    <br>
+    <div class="row">
+        <div class="col-md-3">
+
+        </div>
+        <div style="border: 1px solid red;" class="col-md">
+            <h1>Cadastre-se</h1>
+            <hr>
+
+            <form method="POST">{% csrf_token %}
+                <label>Nome</label>
+                <input class="form-control" type="text" placeholder="Nome...">
+                <br>
+                <label>E-mail</label>
+                <input class="form-control" type="text" placeholder="E-mail...">
+                <br>
+                <label>Senha</label>
+                <input class="form-control" type="password" placeholder="Senha...">
+                <br>
+                <input class="btn btn-info btn-lg" type="submit" value="Enviar">
+            </form>
+
+        </div>
+        <div class="col-md-3">
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+57. Agora precisamos definir uma 'action' para definirmos para onde estes dados inseridos no formulário de cadastro irão. Portanto, vamos para usuarios/urls.py e vamos criar a seguinte adicionar mais caminhos para esse arquivo. Veja abaixo como vai ficar com o que já tinha anteriormente:
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('login/', views.login, name='login'),
+    path('cadastro/', views.cadastro, name='cadastro'),
+    path('valida_cadastro'), views.valida_cadastro, name='valida_cadastro')
+]
+
+58. Como criamos mais um caminho de url precisamos também acessar o arquivo usuarios/views.py e criarmos uma função para isso também.
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+def login(request):
+    return HttpResponse('login')
+
+def cadastro(request):
+    return render(request, 'cadastro.html')
+
+def valida_cadastro(request):
+    return HttpResponse
+
+59. Agora precisamos dar um nome para cada um dos dados do formulário que será enviado. Portanto, voltar ao arquivo usuarios/cadastro.html e editar os campos do formulário a ser enviado que vai ficar assim:
+
+ <form method="POST">{% csrf_token %}
+                <label>Nome</label>
+                <input name="nome" class="form-control" type="text" placeholder="Nome...">
+                <br>
+                <label>E-mail</label>
+                <input name="email" class="form-control" type="text" placeholder="E-mail...">
+                <br>
+                <label>Senha</label>
+                <input name="senha" class="form-control" type="password" placeholder="Senha...">
+                <br>
+                <input class="btn btn-info btn-lg" type="submit" value="Enviar">
+            </form>
+
+60. E agora definimos o action (ou seja, precisamos da url que criamos anteriormente para a função, e esse nome dessa url é valida_cadastro) no mesmo formulário, veja:
+
+<form method="POST" action="{% url 'valida_cadastro' %}">{% csrf_token %}
+                <label>Nome</label>
+                <input name="nome" class="form-control" type="text" placeholder="Nome...">
+                <br>
+                <label>E-mail</label>
+                <input name="email" class="form-control" type="text" placeholder="E-mail...">
+                <br>
+                <label>Senha</label>
+                <input name="senha" class="form-control" type="password" placeholder="Senha...">
+                <br>
+                <input class="btn btn-info btn-lg" type="submit" value="Enviar">
+            </form>
+
+61. Por fim, acertamos no arquivo usuarios/views.py a função que vai receber corretamente os dados do usuário enviados pelo formulário:
+
+def valida_cadastro(request):
+    nome = request.POST.get('nome')
+    senha = request.POST.get('senha')
+    email = request.POST.get('email')
+    return HttpResponse() 
+    # - Isso aqui é só pra verificar se realmente a função está funcionando, o certo é tirar tudo
+    # return HttpResponse(f"{nome} {senha} {email}") 
+
+
+62. Agora, esses dados armazenados na função acima precisam ser enviados para um banco de dados. É o que vamos começar a criar. Vamos editar, portanto, o arquivo usuarios/models.py
+
+from django.db import models
+from django.http import HttpResponse
+from .models import Usuario
+
+# Create your models here.
+class Usuario(models.Model):
+    nome = models.CharField(max_length=30)
+    email = models.EmailField()
+    senha = models.CharField(max_length=64)
+
+    def __str__(self) -> str:
+        return self.nome
+
+
+
