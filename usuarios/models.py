@@ -1,6 +1,6 @@
 from django.db import models
-from django.http import HttpResponse
-from .models import Usuario
+
+
 
 # Create your models here.
 class Usuario(models.Model):
